@@ -9,8 +9,8 @@ apply plugin: 'kotlin-kapt'
 android {
     compileSdkVersion 27
     defaultConfig {
-        applicationId "toong.com.androidcleanarchitecture"
-        minSdkVersion 15
+        applicationId "vn.toong.tracker"
+        minSdkVersion 19
         targetSdkVersion 27
         versionCode 1
         versionName "1.0"
@@ -55,6 +55,8 @@ dependencies {
     kapt "com.google.dagger:dagger-android-processor:$dagger_version"
 
     implementation "android.arch.lifecycle:extensions:1.1.1"
+
+    implementation 'com.google.android.gms:play-services-location:11.0.0'
 
     compile project(path: ':data')
 }
