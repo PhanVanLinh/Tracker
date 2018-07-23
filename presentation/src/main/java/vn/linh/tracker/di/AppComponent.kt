@@ -6,15 +6,15 @@ import dagger.BindsInstance
 import dagger.Component
 import dagger.android.AndroidInjector
 import dagger.android.support.AndroidSupportInjectionModule
-import vn.linh.tracker.CleanArchitectureApp
 import vn.linh.data.NetworkModule
 import vn.linh.data.RepositoryModule
+import vn.linh.tracker.TrackerApp
 import javax.inject.Singleton
 
 @Singleton
 @Component(modules = [AndroidSupportInjectionModule::class, AppModule::class, ActivityBuilderModule::class,
     RepositoryModule::class, NetworkModule::class])
-interface AppComponent : AndroidInjector<CleanArchitectureApp> {
+interface AppComponent : AndroidInjector<TrackerApp> {
 
     // Gives us syntactic sugar. we can then do DaggerAppComponent.builder().application(this).build().inject(this);
     // never having to instantiate any modules or say which module we are passing the application to.

@@ -4,7 +4,7 @@ import dagger.android.AndroidInjector
 import dagger.android.DaggerApplication
 import vn.linh.tracker.di.DaggerAppComponent
 
-class CleanArchitectureApp : DaggerApplication() {
+class TrackerApp : DaggerApplication() {
     override fun applicationInjector(): AndroidInjector<out DaggerApplication> {
         return DaggerAppComponent.builder().application(this).build()
     }
