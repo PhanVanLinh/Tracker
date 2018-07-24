@@ -16,7 +16,7 @@ class MainModule {
     }
 
     @Provides
-    internal fun requestLocationProvider(activity: MainActivity, context: Context): RequestLocationProvider {
+    internal fun provideRequestLocationProvider(activity: MainActivity, context: Context): RequestLocationProvider {
         return RequestLocationProvider(activity, context)
     }
 }

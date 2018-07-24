@@ -3,8 +3,12 @@ package vn.linh.tracker.infrastructure
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
+import android.support.v4.app.Fragment
 import android.util.Log
+import android.widget.Toast
 import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.fitness.Fitness
 import com.google.android.gms.fitness.FitnessOptions
 import com.google.android.gms.fitness.data.DataSource
@@ -12,19 +16,40 @@ import com.google.android.gms.fitness.data.DataType
 import com.google.android.gms.fitness.request.DataSourcesRequest
 import com.google.android.gms.fitness.request.OnDataPointListener
 import com.google.android.gms.fitness.request.SensorRequest
+import vn.linh.tracker.util.constant.REQUEST_CODE_FITNESS_PERMISSION
+import vn.linh.tracker.util.constant.REQUEST_CODE_GOOGLE_SIGN_IN
 import java.util.concurrent.TimeUnit
 
-class StepSensorProvider(var activity: Activity, var context: Context) {
+
+class StepSensorProvider(var fragment: Fragment, var context: Context) {
     val TAG = "StepFragment"
-    private val REQUEST_OAUTH_REQUEST_CODE = 1
     private var listener: OnDataPointListener? = null
 
-     fun start(){
-        if (hasOAuthPermission()) {
-            findFitnessDataSources()
-        } else {
-            requestOAuthPermission()
+    fun start() {
+        if (!isSignedIn()) {
+            signIn()
+            return
         }
+        if (!hasOAuthPermission()) {
+            requestOAuthPermission()
+            return
+        }
+        findFitnessDataSources()
+    }
+
+    private fun getSignInOptions(): GoogleSignInOptions {
+        return GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN).requestEmail()
+                .build()
+    }
+
+    private fun isSignedIn(): Boolean {
+        return GoogleSignIn.getLastSignedInAccount(context) != null
+    }
+
+    private fun signIn() {
+        val signInClient = GoogleSignIn.getClient(context, getSignInOptions())
+        val signInIntent = signInClient.signInIntent
+        fragment.startActivityForResult(signInIntent, REQUEST_CODE_GOOGLE_SIGN_IN)
     }
 
     private fun getFitnessSignInOptions(): FitnessOptions {
@@ -39,20 +64,34 @@ class StepSensorProvider(var activity: Activity, var context: Context) {
 
     private fun requestOAuthPermission() {
         val fitnessOptions = getFitnessSignInOptions()
-        GoogleSignIn.requestPermissions(activity, REQUEST_OAUTH_REQUEST_CODE,
+        GoogleSignIn.requestPermissions(fragment, REQUEST_CODE_FITNESS_PERMISSION,
                 GoogleSignIn.getLastSignedInAccount(context), fitnessOptions)
     }
 
     fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        if (requestCode == REQUEST_OAUTH_REQUEST_CODE) {
-            if (resultCode == Activity.RESULT_OK) {
-                findFitnessDataSources()
+        when (requestCode) {
+            REQUEST_CODE_GOOGLE_SIGN_IN -> {
+                try {
+                    val task = GoogleSignIn.getSignedInAccountFromIntent(data)
+                    val account = task.getResult(ApiException::class.java)
+                    if (!account.email.isNullOrEmpty()) {
+                        start()
+                    }
+                } catch (e: ApiException) {
+                    e.printStackTrace()
+                    Toast.makeText(context, "Sign in failed " + e.statusCode, Toast.LENGTH_SHORT).show()
+                }
+            }
+            REQUEST_CODE_FITNESS_PERMISSION -> {
+                if (resultCode == Activity.RESULT_OK) {
+                    start()
+                }
             }
         }
     }
 
     private fun findFitnessDataSources() {
-        Fitness.getSensorsClient(activity, GoogleSignIn.getLastSignedInAccount(context)!!)
+        Fitness.getSensorsClient(context, GoogleSignIn.getLastSignedInAccount(context)!!)
                 .findDataSources(DataSourcesRequest.Builder().setDataTypes(DataType.TYPE_STEP_COUNT_CUMULATIVE)
                         .setDataSourceTypes(DataSource.TYPE_RAW)
                         .build())
@@ -75,17 +114,17 @@ class StepSensorProvider(var activity: Activity, var context: Context) {
                 Log.i(TAG, "Detected DataPoint field: " + field.name)
                 Log.i(TAG, "Detected DataPoint value: $`val`")
             }
-            Fitness.getSensorsClient(activity, GoogleSignIn.getLastSignedInAccount(context)!!)
-                    .add(SensorRequest.Builder().setDataSource(dataSource)
-                            .setDataType(dataType) // Can't be omitted.
-                            .setSamplingRate(1, TimeUnit.SECONDS).build(), listener)
-                    .addOnCompleteListener({ task ->
-                        if (task.isSuccessful) {
-                            Log.i(TAG, "Listener registered!")
-                        } else {
-                            Log.e(TAG, "Listener not registered.", task.exception)
-                        }
-                    })
         }
+        Fitness.getSensorsClient(context, GoogleSignIn.getLastSignedInAccount(context)!!)
+                .add(SensorRequest.Builder().setDataSource(dataSource)
+                        .setDataType(dataType) // Can't be omitted.
+                        .setSamplingRate(1, TimeUnit.SECONDS).build(), listener)
+                .addOnCompleteListener({ task ->
+                    if (task.isSuccessful) {
+                        Log.i(TAG, "Listener registered!")
+                    } else {
+                        Log.e(TAG, "Listener not registered.", task.exception)
+                    }
+                })
     }
 }

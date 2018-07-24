@@ -12,7 +12,9 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".feature.main.MainActivity" />
+        <activity android:name=".feature.main.MainActivity"
+            android:theme="@style/AppTheme.NoActionBar"
+            />
         <activity android:name=".feature.splash.SplashActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -22,10 +24,6 @@
         </activity>
         <activity android:name=".feature.repo.RepoActivity" />
         <activity android:name=".feature.user.UserActivity" />
-        <activity
-            android:name=".feature.main.Main2Activity"
-            android:label="@string/title_activity_main2"
-            android:theme="@style/AppTheme.NoActionBar" />
     </application>
 
 </manifest>

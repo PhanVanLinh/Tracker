@@ -9,7 +9,7 @@ apply plugin: 'kotlin-kapt'
 android {
     compileSdkVersion 27
     defaultConfig {
-        applicationId "vn.toong.tracker"
+        applicationId "vn.linh.tracker"
         minSdkVersion 19
         targetSdkVersion 27
         versionCode 1

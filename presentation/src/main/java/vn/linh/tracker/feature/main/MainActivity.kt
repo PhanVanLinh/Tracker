@@ -3,17 +3,12 @@ package vn.linh.tracker.feature.main
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
-import android.support.annotation.NonNull
-import android.support.design.widget.BottomNavigationView
 import dagger.android.AndroidInjection
 import kotlinx.android.synthetic.main.activity_main.*
 import vn.linh.tracker.R
 import vn.linh.tracker.feature.BaseActivity
 import vn.linh.tracker.feature.BaseFragment
 import vn.linh.tracker.feature.main.adapter.MainPagerAdapter
-import vn.linh.tracker.infrastructure.RequestLocationProvider
-import vn.linh.tracker.infrastructure.RequestPermissionProvider
-import javax.inject.Inject
 
 class MainActivity : BaseActivity() {
 
@@ -87,6 +82,11 @@ class MainActivity : BaseActivity() {
 //        super.onActivityResult(requestCode, resultCode, data)
 //        requestLocationProvider.onActivityResult(requestCode, resultCode, data)
 //    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+
+    }
 
     override fun onBackPressed() {
         viewpager_main.adapter?.let {

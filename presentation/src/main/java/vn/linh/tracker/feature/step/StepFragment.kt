@@ -1,5 +1,6 @@
 package vn.linh.tracker.feature.step
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -8,19 +9,22 @@ import com.google.android.gms.fitness.request.OnDataPointListener
 import vn.linh.tracker.R
 import vn.linh.tracker.feature.BaseFragment
 import vn.linh.tracker.infrastructure.StepSensorProvider
+import javax.inject.Inject
 
 class StepFragment : BaseFragment() {
     val TAG = "StepFragment"
     private val REQUEST_OAUTH_REQUEST_CODE = 1
     private var listener: OnDataPointListener? = null
+
+    @Inject
     lateinit var stepSensorProvider: StepSensorProvider
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        r()
+        start()
         return inflater.inflate(R.layout.fragment_step, container, false)
     }
 
-    private fun r() {
+    private fun start() {
         stepSensorProvider.start()
     }
 
@@ -28,5 +32,8 @@ class StepFragment : BaseFragment() {
         return true
     }
 
-
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        stepSensorProvider.onActivityResult(requestCode, resultCode, data)
+    }
 }
