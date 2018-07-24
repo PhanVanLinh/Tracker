@@ -10,4 +10,13 @@
     <string name="title_weather">Weather</string>
     <string name="title_step">Step</string>
     <string name="title_other">Other</string>
+
+
+
+
+
+    <string name="steps">steps</string>
+    <string name="title_calories">Calories</string>
+    <string name="title_distance">Distance</string>
+    <string name="meter">meter</string>
 </resources>

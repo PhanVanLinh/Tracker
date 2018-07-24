@@ -3,7 +3,7 @@ package vn.linh.tracker.feature.step
 import android.content.Context
 import dagger.Module
 import dagger.Provides
-import vn.linh.tracker.infrastructure.StepSensorProvider
+import vn.linh.tracker.infrastructure.step.StepSensorProvider
 
 @Module
 class StepModule {

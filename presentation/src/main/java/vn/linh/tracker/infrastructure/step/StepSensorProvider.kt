@@ -1,4 +1,4 @@
-package vn.linh.tracker.infrastructure
+package vn.linh.tracker.infrastructure.step
 
 import android.app.Activity
 import android.content.Context
@@ -16,14 +16,30 @@ import com.google.android.gms.fitness.data.DataType
 import com.google.android.gms.fitness.request.DataSourcesRequest
 import com.google.android.gms.fitness.request.OnDataPointListener
 import com.google.android.gms.fitness.request.SensorRequest
+import vn.linh.tracker.model.FitData
 import vn.linh.tracker.util.constant.REQUEST_CODE_FITNESS_PERMISSION
 import vn.linh.tracker.util.constant.REQUEST_CODE_GOOGLE_SIGN_IN
 import java.util.concurrent.TimeUnit
 
-
-class StepSensorProvider(var fragment: Fragment, var context: Context) {
+class StepSensorProvider(var fragment: Fragment,
+                         var context: Context) {
     val TAG = "StepFragment"
     private var listener: OnDataPointListener? = null
+
+    interface OnFitDataChangeListener {
+        fun onFitDataChange(fitData: FitData)
+    }
+
+    var fitDataChangeListener: OnFitDataChangeListener? = null
+
+    var stepHistory: StepHistory = StepHistory(context, {
+        fitDataChangeListener?.onFitDataChange(it)
+        stepSensor.start()
+    })
+
+    var stepSensor: StepSensor = StepSensor(context, {
+        fitDataChangeListener?.onFitDataChange(it)
+    })
 
     fun start() {
         if (!isSignedIn()) {
@@ -34,7 +50,7 @@ class StepSensorProvider(var fragment: Fragment, var context: Context) {
             requestOAuthPermission()
             return
         }
-        findFitnessDataSources()
+        stepHistory.readTodayHistory()
     }
 
     private fun getSignInOptions(): GoogleSignInOptions {
@@ -53,7 +69,11 @@ class StepSensorProvider(var fragment: Fragment, var context: Context) {
     }
 
     private fun getFitnessSignInOptions(): FitnessOptions {
-        return FitnessOptions.builder().addDataType(DataType.TYPE_STEP_COUNT_CUMULATIVE).build()
+        return FitnessOptions.builder()
+                .addDataType(DataType.TYPE_STEP_COUNT_CUMULATIVE)
+                .addDataType(DataType.TYPE_CALORIES_EXPENDED)
+                .addDataType(DataType.TYPE_DISTANCE_CUMULATIVE)
+                .build()
     }
 
     private fun hasOAuthPermission(): Boolean {
@@ -88,43 +108,5 @@ class StepSensorProvider(var fragment: Fragment, var context: Context) {
                 }
             }
         }
-    }
-
-    private fun findFitnessDataSources() {
-        Fitness.getSensorsClient(context, GoogleSignIn.getLastSignedInAccount(context)!!)
-                .findDataSources(DataSourcesRequest.Builder().setDataTypes(DataType.TYPE_STEP_COUNT_CUMULATIVE)
-                        .setDataSourceTypes(DataSource.TYPE_RAW)
-                        .build())
-                .addOnSuccessListener { dataSources ->
-                    for (dataSource in dataSources) {
-                        Log.i(TAG, "Data source found: " + dataSource.toString())
-                        if (dataSource.getDataType().equals(DataType.TYPE_STEP_COUNT_CUMULATIVE) && listener == null) {
-                            Log.i(TAG, "Data source found!  Registering.")
-                            registerFitnessDataListener(dataSource, DataType.TYPE_STEP_COUNT_CUMULATIVE)
-                        }
-                    }
-                }
-                .addOnFailureListener { e -> Log.e(TAG, "failed", e) }
-    }
-
-    private fun registerFitnessDataListener(dataSource: DataSource, dataType: DataType) {
-        listener = OnDataPointListener { dataPoint ->
-            for (field in dataPoint.dataType.fields) {
-                val `val` = dataPoint.getValue(field)
-                Log.i(TAG, "Detected DataPoint field: " + field.name)
-                Log.i(TAG, "Detected DataPoint value: $`val`")
-            }
-        }
-        Fitness.getSensorsClient(context, GoogleSignIn.getLastSignedInAccount(context)!!)
-                .add(SensorRequest.Builder().setDataSource(dataSource)
-                        .setDataType(dataType) // Can't be omitted.
-                        .setSamplingRate(1, TimeUnit.SECONDS).build(), listener)
-                .addOnCompleteListener({ task ->
-                    if (task.isSuccessful) {
-                        Log.i(TAG, "Listener registered!")
-                    } else {
-                        Log.e(TAG, "Listener not registered.", task.exception)
-                    }
-                })
     }
 }
