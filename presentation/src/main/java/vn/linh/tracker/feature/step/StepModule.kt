@@ -3,13 +3,14 @@ package vn.linh.tracker.feature.step
 import android.content.Context
 import dagger.Module
 import dagger.Provides
-import vn.linh.tracker.infrastructure.step.StepSensorProvider
+import vn.linh.tracker.infrastructure.fit.FitProvider
+import vn.linh.tracker.infrastructure.fit.GoogleFitProvider
 
 @Module
 class StepModule {
 
     @Provides
-    internal fun provideStepSensor(fragment: StepFragment, context: Context): StepSensorProvider {
-        return StepSensorProvider(fragment, context)
+    internal fun provideFitProvider(fragment: StepFragment, context: Context): FitProvider {
+        return GoogleFitProvider(fragment, context)
     }
 }

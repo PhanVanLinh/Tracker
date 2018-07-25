@@ -1,47 +1,42 @@
-package vn.linh.tracker.infrastructure.step
+package vn.linh.tracker.infrastructure.fit
 
 import android.app.Activity
+import android.arch.lifecycle.LiveData
+import android.arch.lifecycle.MutableLiveData
 import android.content.Context
 import android.content.Intent
 import android.support.v4.app.Fragment
-import android.util.Log
 import android.widget.Toast
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
-import com.google.android.gms.fitness.Fitness
 import com.google.android.gms.fitness.FitnessOptions
-import com.google.android.gms.fitness.data.DataSource
 import com.google.android.gms.fitness.data.DataType
-import com.google.android.gms.fitness.request.DataSourcesRequest
-import com.google.android.gms.fitness.request.OnDataPointListener
-import com.google.android.gms.fitness.request.SensorRequest
+import vn.linh.tracker.infrastructure.fit.client.GoogleFitHistoryClient
+import vn.linh.tracker.infrastructure.fit.client.GoogleFitSensorClient
 import vn.linh.tracker.model.FitData
 import vn.linh.tracker.util.constant.REQUEST_CODE_FITNESS_PERMISSION
 import vn.linh.tracker.util.constant.REQUEST_CODE_GOOGLE_SIGN_IN
-import java.util.concurrent.TimeUnit
 
-class StepSensorProvider(var fragment: Fragment,
-                         var context: Context) {
-    val TAG = "StepFragment"
-    private var listener: OnDataPointListener? = null
+class GoogleFitProvider(var fragment: Fragment,
+                        var context: Context) : FitProvider {
 
-    interface OnFitDataChangeListener {
-        fun onFitDataChange(fitData: FitData)
-    }
+    private var todayFitData: MutableLiveData<FitData> = MutableLiveData()
+    private var observingStepChange: Boolean = false
 
-    var fitDataChangeListener: OnFitDataChangeListener? = null
-
-    var stepHistory: StepHistory = StepHistory(context, {
-        fitDataChangeListener?.onFitDataChange(it)
-        stepSensor.start()
+    private var fitHistoryClient: GoogleFitHistoryClient = GoogleFitHistoryClient(context, {
+        todayFitData.value = it
     })
 
-    var stepSensor: StepSensor = StepSensor(context, {
-        fitDataChangeListener?.onFitDataChange(it)
+    private var fitSensorClient: GoogleFitSensorClient = GoogleFitSensorClient(context, { step ->
+        val currentFitData = todayFitData.value
+        currentFitData?.let {
+            it.step += step
+        }
+        todayFitData.value = currentFitData
     })
 
-    fun start() {
+    override fun start() {
         if (!isSignedIn()) {
             signIn()
             return
@@ -50,7 +45,20 @@ class StepSensorProvider(var fragment: Fragment,
             requestOAuthPermission()
             return
         }
-        stepHistory.readTodayHistory()
+        getTodayData()
+        if (!observingStepChange) {
+            observeStepChange()
+        }
+    }
+
+    override fun stop() {
+        if (observingStepChange) {
+            unObserveStepChange()
+        }
+    }
+
+    override fun getLiveTodayFitData(): LiveData<FitData> {
+        return todayFitData
     }
 
     private fun getSignInOptions(): GoogleSignInOptions {
@@ -88,7 +96,21 @@ class StepSensorProvider(var fragment: Fragment,
                 GoogleSignIn.getLastSignedInAccount(context), fitnessOptions)
     }
 
-    fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+    private fun getTodayData() {
+        fitHistoryClient.readTodayHistory()
+    }
+
+    private fun observeStepChange() {
+        fitSensorClient.observeStepChange()
+        observingStepChange = true
+    }
+
+    private fun unObserveStepChange() {
+        fitSensorClient.unObserveStepChange()
+        observingStepChange = false
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         when (requestCode) {
             REQUEST_CODE_GOOGLE_SIGN_IN -> {
                 try {
@@ -108,5 +130,9 @@ class StepSensorProvider(var fragment: Fragment,
                 }
             }
         }
+    }
+
+    enum class Key(val value: String) {
+        STEP("steps")
     }
 }

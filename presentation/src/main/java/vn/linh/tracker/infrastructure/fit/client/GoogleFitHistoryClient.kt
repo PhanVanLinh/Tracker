@@ -1,4 +1,4 @@
-package vn.linh.tracker.infrastructure.step
+package vn.linh.tracker.infrastructure.fit.client
 
 import android.content.Context
 import android.util.Log
@@ -13,26 +13,22 @@ import vn.linh.tracker.util.common.format
 import vn.linh.tracker.util.common.getCurrentDateTime
 import vn.linh.tracker.util.common.getStartOfToday
 import java.util.concurrent.TimeUnit
-import javax.inject.Inject
 
-class StepHistory constructor(val context: Context, private val movieClickCallback: ((FitData) -> Unit)) {
-    val TAG = "StepHistory"
+class GoogleFitHistoryClient constructor(val context: Context, private val fitDataCallback: ((FitData) -> Unit)) {
+    val TAG = "GoogleFitHistoryClient"
 
     fun readTodayHistory() {
         val startTime = getStartOfToday().time
         val endTime = getCurrentDateTime().time
-        Log.i(TAG, "Start: "
-                + format(startTime)
-                + "  End: "
-                + format(endTime))
-        val ESTIMATED_STEP_DELTAS = DataSource.Builder()
+        Log.i(TAG, "Start query: " + format(startTime) + "  End query: " + format(endTime))
+        val estimateStepDeltas = DataSource.Builder()
                 .setDataType(DataType.TYPE_STEP_COUNT_DELTA)
                 .setType(DataSource.TYPE_DERIVED)
                 .setStreamName("estimated_steps")
                 .setAppPackageName("com.google.android.gms")
                 .build()
         val readRequest = DataReadRequest.Builder()
-                .aggregate(ESTIMATED_STEP_DELTAS, DataType.AGGREGATE_STEP_COUNT_DELTA)
+                .aggregate(estimateStepDeltas, DataType.AGGREGATE_STEP_COUNT_DELTA)
                 .aggregate(DataType.TYPE_DISTANCE_DELTA, DataType.AGGREGATE_DISTANCE_DELTA)
                 .aggregate(DataType.TYPE_CALORIES_EXPENDED, DataType.AGGREGATE_CALORIES_EXPENDED)
                 .bucketByTime(1, TimeUnit.DAYS)
@@ -72,6 +68,6 @@ class StepHistory constructor(val context: Context, private val movieClickCallba
                 }
             }
         }
-        movieClickCallback.invoke(fitData)
+        fitDataCallback.invoke(fitData)
     }
 }
