@@ -6,15 +6,16 @@ import com.google.gson.GsonBuilder
 import dagger.Module
 import dagger.Provides
 import vn.linh.data.repository.remote.api.middleware.BasicAuthInterceptor
-import vn.linh.data.repository.remote.api.service.CleanArchitectureApi
+import vn.linh.data.repository.remote.api.service.WeatherApi
 import vn.linh.data.repository.remote.api.service.ServiceGenerator
 import javax.inject.Singleton
+import kotlin.jvm.java
 
 @Module
 class NetworkModule {
 
     companion object {
-        const val API_ENDPOINT = "https://api.github.com/"
+        const val API_ENDPOINT = "http://api.openweathermap.org/"
     }
 
     @Singleton
@@ -31,8 +32,8 @@ class NetworkModule {
 
     @Singleton
     @Provides
-    fun provideCleanArchitectureApi(gson: Gson, interceptor: BasicAuthInterceptor): CleanArchitectureApi {
-        return ServiceGenerator.createService(API_ENDPOINT, CleanArchitectureApi::class.java, gson,
+    fun provideCleanArchitectureApi(gson: Gson, interceptor: BasicAuthInterceptor): WeatherApi {
+        return ServiceGenerator.createService(API_ENDPOINT, WeatherApi::class.java, gson,
                 interceptor)
     }
 }

@@ -2,9 +2,8 @@ package vn.linh.domain.usecase
 
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.disposables.Disposable
-import vn.linh.domain.usecase.input.Input
 
-abstract class UseCase<in I : Input, out O> {
+abstract class UseCase<I : UseCase.Input, O> {
 
     private val compositeDisposable = CompositeDisposable()
 
@@ -16,5 +15,17 @@ abstract class UseCase<in I : Input, out O> {
 
     fun dispose() {
         compositeDisposable.clear()
+    }
+
+    abstract class Input
+
+    open class EmptyInput private constructor() : Input() {
+
+        companion object {
+
+            fun instance(): EmptyInput {
+                return EmptyInput()
+            }
+        }
     }
 }

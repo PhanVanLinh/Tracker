@@ -1,5 +1,7 @@
 package vn.linh.data.repository.local
 
-class RepoLocalDatasource{
+import javax.inject.Inject
+
+class RepoLocalDatasource @Inject constructor() {
 
 }
