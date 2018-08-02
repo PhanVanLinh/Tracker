@@ -9,6 +9,9 @@ import vn.linh.domain.repository.WeatherRepository
 class WeatherRepositoryImpl(private val localDataSource: RepoLocalDatasource,
                             private val remoteDataSource: RepoRemoteDataSource
 ) : WeatherRepository {
+    override fun getWeather(): Single<Weather> {
+        return Single.just(null)
+    }
 
     override fun getWeather(latitude: Float, longitude: Float): Single<Weather> {
         return remoteDataSource.getWeather(latitude, longitude).map { it.mapToDomain() }

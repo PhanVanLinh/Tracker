@@ -1,20 +1,28 @@
-package vn.linh.domain.usecase
+package vn.linh.domain.interactor.input
 
 import io.reactivex.disposables.CompositeDisposable
+import vn.linh.domain.scheduler.SchedulerProvider
+import io.reactivex.Scheduler
 import io.reactivex.disposables.Disposable
 
-abstract class UseCase<I : UseCase.Input, O> {
+abstract class UseCase(private val schedulerProvider: SchedulerProvider) {
 
     private val compositeDisposable = CompositeDisposable()
 
-    protected abstract fun buildDataStream(input: I): O
-
-    internal fun subscribe(disposable: Disposable) {
+    fun subscribe(disposable: Disposable) {
         compositeDisposable.add(disposable)
     }
 
     fun dispose() {
         compositeDisposable.clear()
+    }
+
+    protected open fun getSubscribeOnScheduler(): Scheduler {
+        return schedulerProvider.io()
+    }
+
+    protected open fun getObserveOnScheduler(): Scheduler {
+        return schedulerProvider.ui()
     }
 
     abstract class Input

@@ -5,7 +5,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import vn.linh.domain.usecase.GetWeatherUseCase
 import vn.linh.tracker.R
 import vn.linh.tracker.feature.BaseFragment
 import javax.inject.Inject
