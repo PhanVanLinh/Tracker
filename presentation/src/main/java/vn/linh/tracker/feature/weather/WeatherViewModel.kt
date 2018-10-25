@@ -20,6 +20,10 @@ class WeatherViewModel @Inject constructor(
         val input = GetWeatherUseCase.Input(16.047079f, 108.206230f)
 
         getWeatherUseCase.execute(input, object : DisposableSingleObserver<Weather>() {
+            override fun onStart() {
+                super.onStart()
+            }
+
             override fun onSuccess(weather: Weather) {
                 weatherViewModelMapper.mapToPresentation(weather)
             }
@@ -27,6 +31,8 @@ class WeatherViewModel @Inject constructor(
             override fun onError(e: Throwable) {
             }
         })
+
+
     }
 
     fun stop() {
